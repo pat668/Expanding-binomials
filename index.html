@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Binomial Expressions</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f7f4ef; --card: #fff; --border: #e2dbd0;
+    --text: #252018; --muted: #8a8070;
+    --accent: #2e6db4; --accent2: #c0412a;
+    --green: #2e7d52; --green-bg: #eaf5ee; --red-bg: #fdf0ed;
+    --hint: #6b4fa0; --hint-bg: #f2edf9;
+    --line2: #1e5f7a; --line2-bg: #edf5fa; --line2-border: #b0d4e8;
+    --line3: #2e7d52; --line3-bg: #eaf5ee; --line3-border: #a0d4b8;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; min-height: 100vh; padding: 1.5rem 1rem 5rem; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 1.8rem; }
+  .header-tag { display: inline-block; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.22rem 0.85rem; border-radius: 99px; margin-bottom: 0.5rem; }
+  .header h1 { font-family: 'Lora', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 600; }
+  .header p { color: var(--muted); margin-top: 0.3rem; font-size: 0.9rem; }
+
+  /* Progress */
+  .progress-wrap { max-width: 600px; margin: 0 auto 1.6rem; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 0.35rem; }
+  .progress-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
+
+  /* Card */
+  .card { max-width: 600px; margin: 0 auto; background: var(--card); border-radius: 20px; border: 1.5px solid var(--border); box-shadow: 0 6px 32px rgba(0,0,0,0.07); }
+  .card-inner { padding: 1.6rem 1.8rem; }
+
+  /* Question meta */
+  .q-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; }
+  .q-num { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .badge { font-size: 0.62rem; font-weight: 800; padding: 0.15rem 0.55rem; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .badge-expand    { background: #deeaf8; color: var(--accent); }
+  .badge-factorise { background: #fde8e4; color: var(--accent2); }
+  .badge-easy   { background: #e2f4ea; color: var(--green); }
+  .badge-medium { background: #fff4d6; color: #9a6800; }
+  .badge-hard   { background: #fde8e4; color: var(--accent2); }
+
+  .q-instruction { font-size: 0.92rem; color: var(--muted); margin-bottom: 0.9rem; }
+  .q-expression {
+    font-family: 'Lora', serif; font-size: 1.45rem; color: var(--text);
+    text-align: center; padding: 0.75rem 1.2rem;
+    background: var(--bg); border-radius: 12px; border: 1.5px solid var(--border);
+    margin-bottom: 1.4rem;
+  }
+
+  /* ── Working lines ── */
+  .working { display: flex; flex-direction: column; gap: 0; margin-bottom: 1.2rem; }
+
+  .work-line {
+    border-radius: 0; border: 1.5px solid transparent;
+    padding: 0.75rem 1rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .work-line:first-child { border-radius: 12px 12px 0 0; }
+  .work-line:last-child  { border-radius: 0 0 12px 12px; }
+  .work-line + .work-line { margin-top: -1px; }
+
+  .work-line.line2 { background: var(--line2-bg); border-color: var(--line2-border); }
+  .work-line.line3 { background: var(--line3-bg); border-color: var(--line3-border); }
+
+  .line-label {
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 0.1rem;
+  }
+  .line2 .line-label { color: var(--line2); }
+  .line3 .line-label { color: var(--line3); }
+
+  /* The actual math row inside each line */
+  .math-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 3px;
+    font-family: 'Lora', serif; font-size: 1.15rem; font-style: italic;
+  }
+  .math-row sup { font-size: 0.6em; vertical-align: super; line-height: 0; font-style: italic; }
+
+  /* Fixed text pieces in a math row */
+  .m-text { color: var(--text); white-space: nowrap; line-height: 40px; }
+  .m-sign  { color: var(--text); padding: 0 6px; line-height: 40px; font-size: 1.45rem; font-weight: 700; font-style: normal; }
+
+  /* Input boxes — shared */
+  .m-inp {
+    height: 40px; border-radius: 8px;
+    font-family: 'Lora', serif; font-size: 1.05rem; font-style: italic;
+    text-align: center; outline: none; font-weight: 700;
+    border: 2px solid; transition: border-color 0.15s, background 0.15s;
+    padding: 0 4px;
+  }
+  .m-inp.w-sm  { width: 44px; }
+  .m-inp.w-md  { width: 58px; }
+  .m-inp.w-lg  { width: 72px; }
+
+  /* Per-line colour theming for active inputs */
+  .line2 .m-inp { border-color: var(--line2-border); background: #f0f8fd; color: var(--line2); }
+  .line2 .m-inp:focus { border-color: var(--line2); background: #e5f2fa; }
+  .line3 .m-inp { border-color: var(--line3-border); background: #f0faf4; color: var(--line3); }
+  .line3 .m-inp:focus { border-color: var(--line3); background: #e3f6ea; }
+
+  /* Prefilled inputs */
+  .m-inp.pre { opacity: 0.85; pointer-events: none; font-style: italic; }
+  .line2 .m-inp.pre { border-color: #90bcd4; background: #ddeef7; color: #1e5f7a; }
+  .line3 .m-inp.pre { border-color: #90c4a8; background: #d8f0e4; color: #2e7d52; }
+
+  /* Sign dropdown */
+  .m-sign-sel {
+    height: 40px; width: 52px;
+    border-radius: 8px; border: 2px dashed var(--accent);
+    font-family: 'Lora', serif; font-size: 1.35rem; font-weight: 700;
+    text-align: center; outline: none; cursor: pointer;
+    background: #eef4fc; color: var(--accent);
+    transition: border-color 0.15s, background 0.15s;
+    appearance: none; -webkit-appearance: none;
+    padding: 0;
+  }
+  .m-sign-sel:focus { border-color: var(--hint); background: var(--hint-bg); border-style: solid; }
+  .line3 .m-sign-sel { background: #f0faf4; color: var(--line3); border-color: var(--line3); }
+  .line3 .m-sign-sel:focus { border-color: var(--hint); background: var(--hint-bg); }
+  .m-sign-sel.correct { border-color: var(--green) !important; border-style: solid !important; background: var(--green-bg) !important; color: var(--green) !important; }
+  .m-sign-sel.wrong   { border-color: var(--accent2) !important; border-style: solid !important; background: var(--red-bg) !important; color: var(--accent2) !important; }
+  .m-inp.correct { border-color: var(--green) !important; background: var(--green-bg) !important; color: var(--green) !important; }
+  .m-inp.wrong   { border-color: var(--accent2) !important; background: var(--red-bg) !important; color: var(--accent2) !important; }
+
+  /* Hint */
+  .hint-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.78rem; font-weight: 700; color: var(--hint);
+    background: none; border: none; cursor: pointer; padding: 0;
+    margin-bottom: 0.8rem;
+    text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px;
+  }
+  .hint-btn:hover { opacity: 0.7; }
+  .hint-box {
+    background: var(--hint-bg); border: 1.5px solid #d5bff0; border-radius: 10px;
+    padding: 0.7rem 1rem; font-size: 0.85rem; color: var(--hint);
+    line-height: 1.65; margin-bottom: 1rem; display: none; white-space: pre-line;
+  }
+  .hint-box.open { display: block; }
+
+  /* Feedback */
+  .feedback { border-radius: 10px; padding: 0.65rem 1rem; font-size: 0.88rem; margin-bottom: 1rem; line-height: 1.5; display: none; }
+  .feedback.correct { background: var(--green-bg); color: var(--green); border: 1.5px solid #a8d8bc; display: block; }
+  .feedback.wrong   { background: var(--red-bg);   color: var(--accent2); border: 1.5px solid #f0b8a8; display: block; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 0.6rem; align-items: center; }
+  .btn { padding: 0.58rem 1.3rem; border-radius: 10px; border: none; font-family: 'Nunito'; font-weight: 800; font-size: 0.88rem; cursor: pointer; transition: all 0.14s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #235a9a; transform: translateY(-1px); }
+  .btn-next { background: var(--green); color: #fff; }
+  .btn-next:hover { background: #235f3d; transform: translateY(-1px); }
+
+  /* Done */
+  .done-screen { text-align: center; padding: 2.5rem 2rem; display: none; }
+  .done-screen.show { display: block; }
+  .done-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .done-screen h2 { font-family: 'Lora', serif; font-size: 1.9rem; margin-bottom: 0.4rem; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--accent); line-height: 1; margin: 0.5rem 0; }
+  .done-screen p { color: var(--muted); margin-bottom: 1.5rem; }
+
+  /* Dots */
+  .dots { display: flex; justify-content: center; gap: 0.38rem; margin-top: 1.3rem; }
+  .dot { width: 8px; height: 8px; border-radius: 99px; background: var(--border); transition: all 0.2s; cursor: pointer; }
+  .dot:hover { transform: scale(1.4); opacity: 0.8; }
+  .dot.ok  { background: var(--green); }
+  .dot.err { background: var(--accent2); }
+  .dot.cur { background: var(--accent); width: 22px; cursor: default; }
+  .dot.cur:hover { transform: none; opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">Maths Practice</div>
+  <h1>Binomial Expressions</h1>
+  <p>Show your working — questions get harder as you go</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span id="progressLabel">Question 1 of 10</span>
+    <span id="scoreLabel">Score: 0</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div class="card">
+  <div class="card-inner" id="cardInner"></div>
+  <div class="done-screen" id="doneScreen">
+    <div class="done-icon">🎉</div>
+    <h2>All done!</h2>
+    <div class="score-big" id="finalScore"></div>
+    <p id="finalMsg"></p>
+    <button class="btn btn-primary" onclick="restart()">Try Again</button>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+
+<script>
+// ─── Data model ───────────────────────────────────────────────────────────────
+// Each question has three "lines" of working:
+//   line1: the four FOIL products     e.g.  x·x  +  x·3  +  2·x  +  2·3
+//   line2: unsimplified expansion     e.g.  x²   +  3x   +  2x   +  6
+//   line3: final simplified answer    e.g.  x²   +  5x   +  6
+//
+// Each line is an array of "tokens":
+//   { type: 'text'|'inp', value, id, pre }
+//   text  → rendered as plain math text (signs, variables, brackets, dots)
+//   inp   → rendered as an input box
+//          value  = correct answer string
+//          id     = unique id string e.g. 'L1-0'
+//          pre    = true  → prefilled (shown, read-only)
+//                   false → blank (student fills in)
+//          size   = 'sm'|'md'|'lg'
+
+function T(v)            { return { type:'text', value:v }; }
+function I(id,v,pre,sz)  { return { type:'inp',  id, value:String(v), pre:!!pre, size:sz||'sm' }; }
+function S(id,v)         { return { type:'sign', id, value:v }; }  // selectable +/− dropdown
+
+const questions = [
+  // ════════════════════════════════════════════════════════════════
+  // Q1  (x+2)(x+3)  →  x²+5x+6   EASY — most boxes prefilled
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'easy',
+    expression: '(x + 2)(x + 3)',
+    instruction: 'Expand and simplify. Fill in the highlighted boxes.',
+    hint: 'FOIL: multiply First, Outside, Inside, Last.\nThen collect the x terms in Line 2.',
+    lines: [
+      // Line 1:  x²  +  3x  +  2x  +  6
+      { label:'Step 1 — write out each term', tokens:[
+        T('x²'), T('+'), I('L2-0','3',true,'sm'), T('x'),
+        T('+'),  I('L2-1','2',true,'sm'), T('x'),
+        T('+'),  I('L2-2','6',false,'sm'),
+      ]},
+      // Line 2:  x²  +  5x  +  6
+      { label:'Step 2 — collect like terms', tokens:[
+        T('x²'), T('+'), I('L3-0','5',false,'sm'), T('x'),
+        T('+'),  I('L3-1','6',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q2  (x+4)(x−1)  →  x²+3x−4   EASY — Line 1 prefilled, some blanks in L2/L3
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'easy',
+    expression: '(x + 4)(x − 1)',
+    instruction: 'Expand and simplify. Fill in the highlighted boxes.',
+    hint: 'Watch the signs! Outside term: x × −1 = −x\nInside term: 4 × x = 4x',
+    lines: [
+      // x² − x + 4x − 4
+      { label:'Step 1 — write out each term', tokens:[
+        T('x²'), T('−'), T('x'),
+        T('+'), I('L2-0','4',true,'sm'), T('x'),
+        T('−'), I('L2-1','4',false,'sm'),
+      ]},
+      // x² + 3x − 4
+      { label:'Step 2 — collect like terms', tokens:[
+        T('x²'), T('+'), I('L3-0','3',false,'sm'), T('x'),
+        T('−'), I('L3-1','4',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q3  (x−3)(x−2)  →  x²−5x+6   EASY — Line 1 prefilled, more blanks in L2/L3
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'easy',
+    expression: '(x − 3)(x − 2)',
+    instruction: 'Expand and simplify. Fill in the highlighted boxes.',
+    hint: 'Both brackets have minus signs.\n(−3)(−2) = +6\nCollect middle terms: −3x + (−2x) = −5x',
+    lines: [
+      // x² − 2x − 3x + 6
+      { label:'Step 1 — write out each term', tokens:[
+        T('x²'),
+        T('−'), I('L2-0','2',false,'sm'), T('x'),
+        T('−'), I('L2-1','3',false,'sm'), T('x'),
+        T('+'), I('L2-2','6',false,'sm'),
+      ]},
+      // x² − 5x + 6
+      { label:'Step 2 — collect like terms', tokens:[
+        T('x²'), T('−'), I('L3-0','5',false,'sm'), T('x'),
+        T('+'), I('L3-1','6',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q4  (2x+1)(x+3)  →  2x²+7x+3   MEDIUM — L1 partly prefilled, L2/L3 all blank
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'medium',
+    expression: '(2x + 1)(x + 3)',
+    instruction: 'Expand and simplify. Fill in all the highlighted boxes.',
+    hint: 'First: 2x × x = 2x²\nOutside: 2x × 3 = 6x\nInside: 1 × x = x\nLast: 1 × 3 = 3\nCollect: 6x + x = 7x',
+    lines: [
+      // 2x² + 6x + x + 3
+      { label:'Step 1 — write out each term', tokens:[
+        I('L2-0','2',false,'sm'), T('x²'),
+        T('+'), I('L2-1','6',false,'sm'), T('x'),
+        T('+'), I('L2-2','1',false,'sm'), T('x'),
+        T('+'), I('L2-3','3',false,'sm'),
+      ]},
+      // 2x² + 7x + 3
+      { label:'Step 2 — collect like terms', tokens:[
+        I('L3-0','2',false,'sm'), T('x²'),
+        T('+'), I('L3-1','7',false,'sm'), T('x'),
+        T('+'), I('L3-2','3',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q5  (3x−2)(x+4)  →  3x²+10x−8   MEDIUM — L1 partly blank too
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'medium',
+    expression: '(3x − 2)(x + 4)',
+    instruction: 'Expand and simplify. Fill in all the highlighted boxes.',
+    hint: '3x × x = 3x²\n3x × 4 = 12x\n−2 × x = −2x\n−2 × 4 = −8\nCollect: 12x − 2x = 10x',
+    lines: [
+      // 3x² + 12x − 2x − 8
+      { label:'Step 1 — write out each term', tokens:[
+        I('L2-0','3',false,'sm'), T('x²'),
+        T('+'), I('L2-1','12',false,'md'), T('x'),
+        T('−'), I('L2-2','2',false,'sm'), T('x'),
+        T('−'), I('L2-3','8',false,'sm'),
+      ]},
+      // 3x² + 10x − 8
+      { label:'Step 2 — collect like terms', tokens:[
+        I('L3-0','3',false,'sm'), T('x²'),
+        T('+'), I('L3-1','10',false,'md'), T('x'),
+        T('−'), I('L3-2','8',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q6  (2x+3)(x−5)  →  2x²−7x−15   MEDIUM — L1 mostly blank
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'medium',
+    expression: '(2x + 3)(x − 5)',
+    instruction: 'Expand and simplify. Fill in all the highlighted boxes.',
+    hint: '2x × x = 2x²\n2x × −5 = −10x\n3 × x = 3x\n3 × −5 = −15\nCollect: −10x + 3x = −7x',
+    lines: [
+      // 2x² − 10x + 3x − 15
+      { label:'Step 1 — write out each term', tokens:[
+        I('L2-0','2',false,'sm'), T('x²'),
+        T('−'), I('L2-1','10',false,'md'), T('x'),
+        T('+'), I('L2-2','3',false,'sm'), T('x'),
+        T('−'), I('L2-3','15',false,'md'),
+      ]},
+      // 2x² − 7x − 15
+      { label:'Step 2 — collect like terms', tokens:[
+        I('L3-0','2',false,'sm'), T('x²'),
+        T('−'), I('L3-1','7',false,'sm'), T('x'),
+        T('−'), I('L3-2','15',false,'md'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q7  (2x+3)(3x−4)  →  6x²+x−12   HARD — all lines all blank
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'hard',
+    expression: '(2x + 3)(3x − 4)',
+    instruction: 'Expand and simplify. Fill in every box to show your full working.',
+    hint: null,
+    lines: [
+      // 6x² − 8x + 9x − 12
+      { label:'Step 1 — write out each term', tokens:[
+        I('L2-0','6',false,'sm'), T('x²'),
+        S('S1-0','−'), I('L2-1','8',false,'sm'), T('x'),
+        S('S1-1','+'), I('L2-2','9',false,'sm'), T('x'),
+        S('S1-2','−'), I('L2-3','12',false,'md'),
+      ]},
+      // 6x² + x − 12
+      { label:'Step 2 — collect like terms', tokens:[
+        I('L3-0','6',false,'sm'), T('x²'),
+        S('S2-0','+'), I('L3-1','1',false,'sm'), T('x'),
+        S('S2-1','−'), I('L3-2','12',false,'md'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q8  (4x−3)(2x+5)  →  8x²+14x−15   HARD — all blank
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'hard',
+    expression: '(4x − 3)(2x + 5)',
+    instruction: 'Expand and simplify. Fill in every box to show your full working.',
+    hint: null,
+    lines: [
+      // 8x² + 20x − 6x − 15
+      { label:'Step 1 — write out each term', tokens:[
+        I('L2-0','8',false,'sm'), T('x²'),
+        S('S1-0','+'), I('L2-1','20',false,'md'), T('x'),
+        S('S1-1','−'), I('L2-2','6',false,'sm'), T('x'),
+        S('S1-2','−'), I('L2-3','15',false,'md'),
+      ]},
+      // 8x² + 14x − 15
+      { label:'Step 2 — collect like terms', tokens:[
+        I('L3-0','8',false,'sm'), T('x²'),
+        S('S2-0','+'), I('L3-1','14',false,'md'), T('x'),
+        S('S2-1','−'), I('L3-2','15',false,'md'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q9  (5x+2)(2x−3)  →  10x²−11x−6   HARD — no scaffolding at all
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'hard',
+    expression: '(5x + 2)(2x − 3)',
+    instruction: 'Expand and simplify. No hints this time — fill in every box.',
+    hint: null,
+    lines: [
+      // 10x² − 15x + 4x − 6
+      { label:'Step 1 — write out each term', tokens:[
+        I('Q9L1-0','10',false,'md'), T('x²'),
+        S('Q9S1-0','−'), I('Q9L1-1','15',false,'md'), T('x'),
+        S('Q9S1-1','+'), I('Q9L1-2','4',false,'sm'), T('x'),
+        S('Q9S1-2','−'), I('Q9L1-3','6',false,'sm'),
+      ]},
+      // 10x² − 11x − 6
+      { label:'Step 2 — collect like terms', tokens:[
+        I('Q9L2-0','10',false,'md'), T('x²'),
+        S('Q9S2-0','−'), I('Q9L2-1','11',false,'md'), T('x'),
+        S('Q9S2-1','−'), I('Q9L2-2','6',false,'sm'),
+      ]},
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // Q10  (3x−4)(3x+4)  →  9x²−16   HARD — difference of two squares, no scaffolding
+  // ════════════════════════════════════════════════════════════════
+  {
+    type:'expand', difficulty:'hard',
+    expression: '(3x − 4)(3x + 4)',
+    instruction: 'Expand and simplify. No hints this time — fill in every box.',
+    hint: null,
+    lines: [
+      // 9x² + 12x − 12x − 16
+      { label:'Step 1 — write out each term', tokens:[
+        I('Q10L1-0','9',false,'sm'), T('x²'),
+        S('Q10S1-0','+'), I('Q10L1-1','12',false,'md'), T('x'),
+        S('Q10S1-1','−'), I('Q10L1-2','12',false,'md'), T('x'),
+        S('Q10S1-2','−'), I('Q10L1-3','16',false,'md'),
+      ]},
+      // 9x² − 16
+      { label:'Step 2 — collect like terms', tokens:[
+        I('Q10L2-0','9',false,'sm'), T('x²'),
+        S('Q10S2-0','−'), I('Q10L2-1','16',false,'md'),
+      ]},
+    ],
+  },
+];
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let current = 0, score = 0, results = [], answered = false;
+
+function norm(s) {
+  return String(s).trim().toLowerCase()
+    .replace(/\s+/g,'').replace(/x²/g,'x^2').replace(/²/g,'^2')
+    .replace(/−/g,'-').replace(/\+-/g,'-');
+}
+
+function exprHTML(s) {
+  return s.replace(/\^2/g,'<sup>2</sup>').replace('²','<sup>2</sup>');
+}
+
+// ─── Rendering helpers ────────────────────────────────────────────────────────
+function renderDots() {
+  const el = document.getElementById('dots');
+  el.innerHTML = '';
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    const isDone = i < results.length;
+    const isCurrent = i === current;
+    d.className = 'dot' + (isDone ? (results[i] ? ' ok' : ' err') : isCurrent ? ' cur' : '');
+    d.title = `Question ${i + 1}`;
+    if (!isCurrent) d.addEventListener('click', () => goTo(i));
+    el.appendChild(d);
+  });
+}
+
+function goTo(i) {
+  current = i;
+  answered = results[i] !== undefined; // treat already-answered questions as answered
+  renderQuestion();
+}
+
+function renderProgress() {
+  document.getElementById('progressLabel').textContent = `Question ${current+1} of ${questions.length}`;
+  document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+  document.getElementById('progressFill').style.width = (current / questions.length * 100) + '%';
+}
+
+function tokenHTML(tok, lineClass) {
+  if (tok.type === 'sign') {
+    return `<select class="m-sign-sel" id="${tok.id}">
+      <option value="" disabled selected>?</option>
+      <option value="+">+</option>
+      <option value="−">−</option>
+    </select>`;
+  } else if (tok.type === 'text') {
+    // Render superscripts in text values
+    const v = tok.value.replace('²','<sup>2</sup>');
+    if (['+','−','·','(',')','+','-'].includes(tok.value.trim())) {
+      return `<span class="m-sign">${v}</span>`;
+    }
+    return `<span class="m-text">${v}</span>`;
+  } else {
+    // input
+    const preClass = tok.pre ? ' pre' : '';
+    const sizeClass = ` w-${tok.size||'sm'}`;
+    const val = tok.pre ? ` value="${tok.value}"` : '';
+    const ro = tok.pre ? ' readonly' : '';
+    const ph = tok.pre ? '' : ` placeholder="?"`;
+    return `<input class="m-inp${preClass}${sizeClass}" id="${tok.id}"${val}${ro}${ph} autocomplete="off" spellcheck="false"/>`;
+  }
+}
+
+function buildLine(lineData, lineNum) {
+  const clsMap = ['line2','line3'];
+  const cls = clsMap[lineNum] || 'line2';
+  let html = `<div class="work-line ${cls}">
+    <div class="line-label">${lineData.label}</div>
+    <div class="math-row">`;
+  lineData.tokens.forEach(tok => { html += tokenHTML(tok, cls); });
+  html += `</div></div>`;
+  return html;
+}
+
+// ─── Render question ──────────────────────────────────────────────────────────
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  renderProgress();
+  renderDots();
+
+  const ci = document.getElementById('cardInner');
+  document.getElementById('doneScreen').classList.remove('show');
+  ci.style.display = '';
+
+  let html = `
+    <div class="q-meta">
+      <span class="q-num">Q${current+1}</span>
+      <span class="badge badge-${q.type}">${q.type === 'expand' ? '→ Expand' : '← Factorise'}</span>
+      <span class="badge badge-${q.difficulty}">${q.difficulty}</span>
+    </div>
+    <div class="q-instruction">${q.instruction}</div>
+    <div class="q-expression">${q.expression}</div>`;
+
+  if (q.hint) {
+    html += `<button class="hint-btn" id="hintBtn" onclick="toggleHint()">💡 Show hint</button>
+             <div class="hint-box" id="hintBox">${q.hint}</div>`;
+  }
+
+  html += `<div class="working">`;
+  q.lines.forEach((line, i) => { html += buildLine(line, i); });
+  html += `</div>`;
+
+  html += `<div class="feedback" id="feedback"></div>
+           <div class="btn-row">
+             <button class="btn btn-primary" id="checkBtn" onclick="doCheck()">Check Answer</button>
+           </div>`;
+
+  ci.innerHTML = html;
+
+  // Enter key
+  ci.querySelectorAll('input:not([readonly])').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !answered) doCheck(); });
+  });
+}
+
+function toggleHint() {
+  const hb = document.getElementById('hintBox');
+  const btn = document.getElementById('hintBtn');
+  if (!hb) return;
+  const open = hb.classList.toggle('open');
+  btn.textContent = open ? '💡 Hide hint' : '💡 Show hint';
+}
+
+// ─── Check ────────────────────────────────────────────────────────────────────
+function doCheck() {
+  if (answered) { advance(); return; }
+  const q = questions[current];
+
+  // Gather all blank inputs AND sign dropdowns across all lines
+  const blankTokens = [];
+  q.lines.forEach(line => {
+    line.tokens.forEach(tok => {
+      if (tok.type === 'inp' && !tok.pre) blankTokens.push(tok);
+      if (tok.type === 'sign') blankTokens.push(tok);
+    });
+  });
+
+  // Check all filled
+  const missing = blankTokens.some(tok => {
+    const el = document.getElementById(tok.id);
+    if (!el) return true;
+    if (tok.type === 'sign') return !el.value;
+    return !el.value.trim();
+  });
+  if (missing) { flashMsg('Fill in all the boxes and signs first.'); return; }
+
+  // Check each
+  let allCorrect = true;
+  blankTokens.forEach(tok => {
+    const el = document.getElementById(tok.id);
+    const given = tok.type === 'sign' ? el.value : norm(el.value);
+    const expected = tok.type === 'sign' ? tok.value : norm(tok.value);
+    const ok = given === expected;
+    el.classList.add(ok ? 'correct' : 'wrong');
+    if (!ok) allCorrect = false;
+  });
+
+  answered = true;
+  results.push(allCorrect);
+  if (allCorrect) score++;
+  renderProgress();
+  renderDots();
+
+  const fb = document.getElementById('feedback');
+  if (allCorrect) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correct!</strong> Excellent working!`;
+  } else {
+    fb.className = 'feedback wrong';
+    // Show correct values for wrong boxes
+    const wrongList = blankTokens
+      .filter(tok => norm(document.getElementById(tok.id).value) !== norm(tok.value))
+      .map(tok => `<em>${tok.value}</em>`);
+    fb.innerHTML = `<strong>✗ Not quite.</strong> Check the red boxes — correct values: ${wrongList.join(', ')}.`;
+  }
+
+  const btn = document.getElementById('checkBtn');
+  btn.textContent = current < questions.length - 1 ? 'Next Question →' : 'See Results →';
+  btn.className = 'btn btn-next';
+}
+
+function flashMsg(msg) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback wrong';
+  fb.innerHTML = msg;
+  fb.style.display = 'block';
+  setTimeout(() => { if (!answered) fb.style.display = 'none'; }, 2200);
+}
+
+function advance() {
+  current++;
+  if (current >= questions.length) showDone();
+  else renderQuestion();
+}
+
+function showDone() {
+  document.getElementById('cardInner').style.display = 'none';
+  document.getElementById('doneScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = `${score} / ${questions.length}`;
+  const p = score / questions.length;
+  document.getElementById('finalMsg').textContent =
+    p === 1   ? '🌟 Perfect score — outstanding!' :
+    p >= 0.8  ? '🎉 Excellent work, nearly perfect!' :
+    p >= 0.6  ? '👍 Good effort — keep practising!' :
+    '📚 Keep going — you\'re building your skills!';
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  renderDots();
+}
+
+function restart() {
+  current = 0; score = 0; results = [];
+  document.getElementById('doneScreen').classList.remove('show');
+  document.getElementById('cardInner').style.display = '';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
